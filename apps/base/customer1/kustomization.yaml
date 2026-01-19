@@ -1,0 +1,20 @@
+# =============================================================================
+# Bead 8-10: Customer1 Application - Base Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: customer1
+
+resources:
+  # Bead 8: Namespace and RBAC
+  - namespace.yaml
+  - service-account.yaml
+  - secrets.yaml
+  # Bead 9: PostgreSQL Database
+  - database.yaml
+  # Bead 10: Application Deployment
+  - deployment.yaml
+  - service.yaml
+  - ingress-route.yaml
+  - certificate.yaml

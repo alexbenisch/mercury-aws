@@ -1,0 +1,17 @@
+# =============================================================================
+# Bead 6: Infrastructure Controllers - Base Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # Bead 4: Secrets Store CSI Driver
+  - secrets-store-csi/
+  # Bead 6.1: Traefik Ingress Controller
+  - traefik/
+  # Bead 6.2: cert-manager
+  - cert-manager/
+  # Bead 6.3: CloudNativePG Operator
+  - cloudnative-pg/
+  # Bead 12: AWS CloudWatch Monitoring
+  - aws-cloudwatch/

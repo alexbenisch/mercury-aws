@@ -1,0 +1,10 @@
+# =============================================================================
+# Bead 6.1: Traefik Namespace
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: traefik
+  labels:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/component: ingress-controller

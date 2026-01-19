@@ -1,0 +1,12 @@
+# =============================================================================
+# Bead 5: Flux System Kustomization
+# =============================================================================
+# NOTE: This file will be auto-generated/updated by `flux bootstrap`
+# The contents below are a placeholder for the expected structure
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - gotk-components.yaml
+  - gotk-sync.yaml

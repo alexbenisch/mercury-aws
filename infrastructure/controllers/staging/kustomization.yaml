@@ -1,0 +1,12 @@
+# =============================================================================
+# Bead 6: Infrastructure Controllers - Staging Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+
+patches:
+  # Staging-specific patches can be added here
+  []

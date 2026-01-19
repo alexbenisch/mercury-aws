@@ -1,0 +1,37 @@
+# =============================================================================
+# Bead 6.2: Let's Encrypt Cluster Issuers
+# =============================================================================
+
+# Staging Issuer (for testing)
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: admin@mercury.kubetest.uk
+    privateKeySecretRef:
+      name: letsencrypt-staging-account-key
+    solvers:
+      - dns01:
+          route53:
+            region: eu-west-1
+            # IRSA is used - no explicit credentials needed
+---
+# Production Issuer
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-production
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@mercury.kubetest.uk
+    privateKeySecretRef:
+      name: letsencrypt-production-account-key
+    solvers:
+      - dns01:
+          route53:
+            region: eu-west-1
+            # IRSA is used - no explicit credentials needed

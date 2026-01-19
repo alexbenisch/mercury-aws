@@ -1,0 +1,11 @@
+# =============================================================================
+# Bead 8.1: Customer1 Namespace
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: customer1
+  labels:
+    app.kubernetes.io/name: customer1
+    app.kubernetes.io/part-of: mercury
+    environment: staging

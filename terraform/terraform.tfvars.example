@@ -1,0 +1,32 @@
+# =============================================================================
+# Terraform Variables Example
+# =============================================================================
+# Copy this file to terraform.tfvars and update with your values
+
+# General
+aws_region   = "eu-west-1"
+environment  = "staging"
+project_name = "mercury"
+
+# VPC
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+
+# EKS
+cluster_name        = "mercury-eks-staging"
+cluster_version     = "1.31"
+node_instance_types = ["t3.medium"]
+node_desired_size   = 2
+node_min_size       = 2
+node_max_size       = 4
+
+# Database credentials (store securely, don't commit!)
+db_username = "customer1_admin"
+db_password = "CHANGE_ME_TO_SECURE_PASSWORD"
+
+# DNS
+domain_name     = "mercury.kubetest.uk"
+route53_zone_id = ""  # Set if you have an existing hosted zone
+
+# Backups
+backup_retention_days = 30

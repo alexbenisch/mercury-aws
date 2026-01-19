@@ -1,0 +1,11 @@
+# =============================================================================
+# Bead 12: EKS Charts Helm Repository
+# =============================================================================
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: eks-charts
+  namespace: flux-system
+spec:
+  interval: 24h
+  url: https://aws.github.io/eks-charts

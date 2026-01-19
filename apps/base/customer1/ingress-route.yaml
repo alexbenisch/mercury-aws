@@ -1,0 +1,73 @@
+# =============================================================================
+# Bead 10.3: Traefik IngressRoute for Customer1
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: customer1-n8n
+  namespace: customer1
+  labels:
+    app.kubernetes.io/name: n8n
+    app.kubernetes.io/instance: customer1-n8n
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`customer1.mercury.kubetest.uk`)
+      kind: Rule
+      services:
+        - name: customer1-n8n
+          port: 5678
+      middlewares:
+        - name: customer1-headers
+  tls:
+    secretName: customer1-tls
+---
+# =============================================================================
+# HTTP to HTTPS Redirect
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: customer1-n8n-redirect
+  namespace: customer1
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`customer1.mercury.kubetest.uk`)
+      kind: Rule
+      services:
+        - name: customer1-n8n
+          port: 5678
+      middlewares:
+        - name: redirect-https
+---
+# =============================================================================
+# Middlewares
+# =============================================================================
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https
+  namespace: customer1
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: customer1-headers
+  namespace: customer1
+spec:
+  headers:
+    stsSeconds: 31536000
+    stsIncludeSubdomains: true
+    stsPreload: true
+    forceSTSHeader: true
+    customFrameOptionsValue: "SAMEORIGIN"
+    contentTypeNosniff: true
+    browserXssFilter: true
+    referrerPolicy: "strict-origin-when-cross-origin"

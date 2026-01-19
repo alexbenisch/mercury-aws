@@ -1,0 +1,9 @@
+# =============================================================================
+# Infrastructure Configs - Base Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - cluster-issuers.yaml
+  - storage-classes.yaml

@@ -1,0 +1,110 @@
+# =============================================================================
+# Bead 9: PostgreSQL Cluster with CloudNativePG
+# =============================================================================
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: customer1-db
+  namespace: customer1
+  labels:
+    app.kubernetes.io/name: customer1-db
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: customer1
+spec:
+  # Bead 9.1: Database Deployment
+  instances: 3
+
+  # PostgreSQL version
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.1
+
+  # Primary update strategy
+  primaryUpdateStrategy: unsupervised
+
+  # Service Account with IRSA for S3 access
+  serviceAccountTemplate:
+    metadata:
+      annotations:
+        # This ARN will be replaced with actual value from Terraform output
+        eks.amazonaws.com/role-arn: "${CNPG_BACKUP_ROLE_ARN}"
+
+  # Storage configuration
+  storage:
+    size: 10Gi
+    storageClass: gp3
+
+  # Resource limits
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+  # PostgreSQL configuration
+  postgresql:
+    parameters:
+      max_connections: "100"
+      shared_buffers: "256MB"
+      effective_cache_size: "512MB"
+      maintenance_work_mem: "64MB"
+      checkpoint_completion_target: "0.9"
+      wal_buffers: "16MB"
+      default_statistics_target: "100"
+      random_page_cost: "1.1"
+      effective_io_concurrency: "200"
+      work_mem: "4MB"
+      huge_pages: "off"
+      min_wal_size: "1GB"
+      max_wal_size: "4GB"
+    pg_hba:
+      - host all all 10.0.0.0/8 scram-sha-256
+
+  # Bootstrap from scratch
+  bootstrap:
+    initdb:
+      database: customer1
+      owner: customer1_admin
+      secret:
+        name: customer1-db-credentials
+      postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+        - CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
+
+  # Bead 9.2: Backup Configuration to S3
+  backup:
+    barmanObjectStore:
+      # S3 bucket path - update with actual bucket name
+      destinationPath: s3://mercury-cnpg-backups-staging/customer1
+      s3Credentials:
+        inheritFromIAMRole: true
+      wal:
+        compression: gzip
+        maxParallel: 2
+      data:
+        compression: gzip
+    retentionPolicy: "30d"
+
+  # Monitoring
+  monitoring:
+    enablePodMonitor: false
+
+  # Node affinity for spreading across AZs
+  affinity:
+    topologyKey: topology.kubernetes.io/zone
+
+---
+# =============================================================================
+# Bead 9.2: Scheduled Backup
+# =============================================================================
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: customer1-db-backup
+  namespace: customer1
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM UTC
+  backupOwnerReference: self
+  cluster:
+    name: customer1-db
+  immediate: false

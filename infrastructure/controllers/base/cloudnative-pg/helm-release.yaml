@@ -1,0 +1,42 @@
+# =============================================================================
+# Bead 6.3: CloudNativePG Helm Release
+# =============================================================================
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cloudnative-pg
+  namespace: cnpg-system
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: cloudnative-pg
+      version: "0.20.x"
+      sourceRef:
+        kind: HelmRepository
+        name: cloudnative-pg
+        namespace: flux-system
+      interval: 12h
+  values:
+    # Number of replicas
+    replicaCount: 1
+
+    # Resource limits
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+
+    # Monitoring
+    monitoring:
+      podMonitorEnabled: false
+      grafanaDashboard:
+        create: false
+
+    # Configuration
+    config:
+      # Log level
+      logLevel: info

@@ -1,0 +1,10 @@
+# =============================================================================
+# Bead 12: CloudWatch Namespace
+# =============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: amazon-cloudwatch
+  labels:
+    app.kubernetes.io/name: amazon-cloudwatch
+    app.kubernetes.io/component: monitoring

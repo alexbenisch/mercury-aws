@@ -1,0 +1,22 @@
+# =============================================================================
+# Bead 10.1: n8n Service
+# =============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer1-n8n
+  namespace: customer1
+  labels:
+    app.kubernetes.io/name: n8n
+    app.kubernetes.io/instance: customer1-n8n
+    app.kubernetes.io/component: workflow-automation
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 5678
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: n8n
+    app.kubernetes.io/instance: customer1-n8n

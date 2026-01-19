@@ -1,0 +1,18 @@
+# =============================================================================
+# Bead 10.2: TLS Certificate for Customer1
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: customer1-tls
+  namespace: customer1
+spec:
+  secretName: customer1-tls
+  duration: 2160h  # 90 days
+  renewBefore: 360h  # 15 days
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  commonName: customer1.mercury.kubetest.uk
+  dnsNames:
+    - customer1.mercury.kubetest.uk

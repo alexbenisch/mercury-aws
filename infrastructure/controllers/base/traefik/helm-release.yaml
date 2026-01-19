@@ -1,0 +1,85 @@
+# =============================================================================
+# Bead 6.1: Traefik Helm Release with AWS NLB
+# =============================================================================
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: traefik
+      version: "26.x"
+      sourceRef:
+        kind: HelmRepository
+        name: traefik
+        namespace: flux-system
+      interval: 12h
+  values:
+    # Deployment configuration
+    deployment:
+      replicas: 2
+
+    # Service configuration with AWS NLB annotations
+    service:
+      enabled: true
+      type: LoadBalancer
+      annotations:
+        # AWS Network Load Balancer
+        service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+        service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+        service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+        # Health check configuration
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: "HTTP"
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/ping"
+        service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval: "30"
+
+    # Ports configuration
+    ports:
+      web:
+        port: 8000
+        expose: true
+        exposedPort: 80
+        protocol: TCP
+      websecure:
+        port: 8443
+        expose: true
+        exposedPort: 443
+        protocol: TCP
+        tls:
+          enabled: true
+
+    # Enable Traefik dashboard (internal only)
+    ingressRoute:
+      dashboard:
+        enabled: true
+        matchRule: Host(`traefik.localhost`)
+        entryPoints: ["traefik"]
+
+    # Logs
+    logs:
+      general:
+        level: INFO
+      access:
+        enabled: true
+
+    # Resource limits
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
+
+    # Pod disruption budget
+    podDisruptionBudget:
+      enabled: true
+      minAvailable: 1
+
+    # Metrics for monitoring
+    metrics:
+      prometheus:
+        enabled: true

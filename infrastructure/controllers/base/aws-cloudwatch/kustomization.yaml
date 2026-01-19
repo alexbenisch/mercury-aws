@@ -1,0 +1,13 @@
+# =============================================================================
+# Bead 12: AWS CloudWatch Monitoring - Kustomization
+# =============================================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: amazon-cloudwatch
+
+resources:
+  - namespace.yaml
+  - helm-repository.yaml
+  - helm-release-metrics.yaml
+  - helm-release-logs.yaml
