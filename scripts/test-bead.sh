@@ -8,6 +8,8 @@
 set -euo pipefail
 
 BEAD="${1:-}"
+AWS_REGION="${AWS_REGION:-eu-west-1}"
+export AWS_DEFAULT_REGION="$AWS_REGION"
 
 # Colors
 RED='\033[0;31m'
@@ -31,7 +33,7 @@ case "$BEAD" in
         echo -e "${YELLOW}=== Testing Bead 1: AWS Foundation ===${NC}"
 
         echo "Testing VPC..."
-        VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:Name,Values=mercury-vpc-*" --query "Vpcs[0].VpcId" --output text 2>/dev/null || echo "")
+        VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:Name,Values=mercury-vpc-staging" --query "Vpcs[0].VpcId" --output text 2>/dev/null || echo "")
         if [ -n "$VPC_ID" ] && [ "$VPC_ID" != "None" ]; then
             check_pass "VPC exists: $VPC_ID"
         else
@@ -47,10 +49,12 @@ case "$BEAD" in
         fi
 
         echo "Testing S3 Backend..."
-        if aws s3api head-bucket --bucket mercury-terraform-state 2>/dev/null; then
-            check_pass "Terraform state bucket exists"
+        ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+        BUCKET_NAME="mercury-terraform-state-${ACCOUNT_ID}"
+        if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
+            check_pass "Terraform state bucket exists: $BUCKET_NAME"
         else
-            check_fail "Terraform state bucket not found"
+            check_fail "Terraform state bucket not found: $BUCKET_NAME"
         fi
         ;;
 

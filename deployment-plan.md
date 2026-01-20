@@ -5,6 +5,91 @@ Migration from Azure (AKS) to AWS (EKS) broken into testable beads.
 
 ---
 
+## Bead 0: Bootstrap & Devcontainer Setup
+
+### Prerequisites
+A local AWS CLI user with permissions to create IAM resources. Attach `iam/bootstrap-admin-policy.json` to your local CLI user before starting.
+
+**Required permissions for local admin user:**
+- `iam:CreatePolicy` / `iam:GetPolicy` / `iam:DeletePolicy` (on `policy/MercuryDeploymentPolicy`)
+- `iam:CreateGroup` / `iam:GetGroup` / `iam:DeleteGroup` (on `group/MercuryDeployers`)
+- `iam:AttachGroupPolicy` / `iam:DetachGroupPolicy` (on `group/MercuryDeployers`)
+- `iam:CreateUser` / `iam:GetUser` / `iam:DeleteUser` (on `user/devpod_otto`)
+- `iam:AddUserToGroup` / `iam:RemoveUserFromGroup` (on `user/devpod_otto`)
+- `iam:CreateAccessKey` / `iam:DeleteAccessKey` (on `user/devpod_otto`)
+- `sts:GetCallerIdentity`
+
+### 0.1 Attach Bootstrap Policy to Local Admin
+- [ ] Log into AWS Console as root/admin
+- [ ] Go to IAM → Users → `<your-cli-user>`
+- [ ] Create inline policy from `iam/bootstrap-admin-policy.json`
+- [ ] Name it `MercuryBootstrapAdmin`
+
+**Test:**
+```bash
+aws sts get-caller-identity
+aws iam get-user --user-name $(aws sts get-caller-identity --query Arn --output text | cut -d'/' -f2)
+```
+
+### 0.2 Create Deployment Policy
+- [ ] Create IAM policy `MercuryDeploymentPolicy` from `iam/mercury-deployment-policy.json`
+
+**Test:**
+```bash
+aws iam get-policy --policy-arn arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):policy/MercuryDeploymentPolicy
+```
+
+### 0.3 Create Deployers Group
+- [ ] Create IAM group `MercuryDeployers`
+- [ ] Attach `MercuryDeploymentPolicy` to the group
+
+**Test:**
+```bash
+aws iam get-group --group-name MercuryDeployers
+aws iam list-attached-group-policies --group-name MercuryDeployers
+```
+
+### 0.4 Create Devcontainer User
+- [ ] Create IAM user `devpod_otto`
+- [ ] Add user to `MercuryDeployers` group
+- [ ] Create access key for user
+
+**Test:**
+```bash
+aws iam get-user --user-name devpod_otto
+aws iam list-groups-for-user --user-name devpod_otto
+```
+
+### 0.5 Configure Local Credentials
+- [ ] Add access key to `~/.aws/credentials` under profile `[devpod_otto]`
+- [ ] Verify credentials work
+
+**Test:**
+```bash
+AWS_PROFILE=devpod_otto aws sts get-caller-identity
+```
+
+### 0.6 Devcontainer Setup
+- [ ] Copy `.devcontainer/` to project (already configured for `devpod_otto`)
+- [ ] Create SSH key `~/.ssh/aws` for GitHub access
+- [ ] Build and start devcontainer
+
+**Test:**
+```bash
+# Inside devcontainer
+aws sts get-caller-identity
+git clone git@github.com:<org>/<repo>.git /tmp/test-clone && rm -rf /tmp/test-clone
+```
+
+### Automated Setup Script
+Run `iam/setup-iam.sh` to automate steps 0.2-0.4 (requires bootstrap policy attached first).
+
+```bash
+cd iam && ./setup-iam.sh
+```
+
+---
+
 ## Bead 1: AWS Foundation Setup
 
 ### 1.1 Terraform Backend
@@ -439,9 +524,10 @@ aws logs describe-log-groups --log-group-name-prefix /aws/eks/mercury-eks-stagin
 
 ## Execution Order Summary
 
-| Bead | Dependencies | Estimated Effort |
-|------|--------------|------------------|
-| 1 | None | Foundation |
+| Bead | Dependencies | Description |
+|------|--------------|-------------|
+| 0 | None | Bootstrap & Devcontainer |
+| 1 | Bead 0 | Foundation |
 | 2 | Bead 1 | Core cluster |
 | 3 | Bead 2 | Security setup |
 | 4 | Bead 3 | Secrets integration |

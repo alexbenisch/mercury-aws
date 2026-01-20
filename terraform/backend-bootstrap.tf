@@ -7,7 +7,7 @@
 module "backend" {
   source = "./modules/backend"
 
-  bucket_name    = "mercury-terraform-state"
+  bucket_name    = "mercury-terraform-state-${data.aws_caller_identity.current.account_id}"
   dynamodb_table = "terraform-locks"
   aws_region     = var.aws_region
 }

@@ -24,7 +24,7 @@ terraform {
   # NOTE: First run requires: terraform init -backend=false
   # Then create S3 bucket and DynamoDB table, then reconfigure
   backend "s3" {
-    bucket         = "mercury-terraform-state"
+    bucket         = "mercury-terraform-state-863550871360"
     key            = "eks/terraform.tfstate"
     region         = "eu-west-1"
     dynamodb_table = "terraform-locks"

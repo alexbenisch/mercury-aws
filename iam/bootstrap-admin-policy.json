@@ -1,0 +1,61 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CreateAndManageDeploymentPolicies",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreatePolicy",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion",
+        "iam:DeletePolicy",
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicyVersion",
+        "iam:ListPolicyVersions"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:policy/MercuryDeploymentPolicy",
+        "arn:aws:iam::*:policy/MercuryDeploymentPolicy-Core",
+        "arn:aws:iam::*:policy/MercuryDeploymentPolicy-Network",
+        "arn:aws:iam::*:policy/MercuryDeploymentPolicy-IAM",
+        "arn:aws:iam::*:policy/MercuryDeploymentPolicy-Ops"
+      ]
+    },
+    {
+      "Sid": "CreateAndManageDeployersGroup",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateGroup",
+        "iam:DeleteGroup",
+        "iam:GetGroup",
+        "iam:AttachGroupPolicy",
+        "iam:DetachGroupPolicy",
+        "iam:ListAttachedGroupPolicies"
+      ],
+      "Resource": "arn:aws:iam::*:group/MercuryDeployers"
+    },
+    {
+      "Sid": "CreateAndManageDevpodUser",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateUser",
+        "iam:DeleteUser",
+        "iam:GetUser",
+        "iam:TagUser",
+        "iam:AddUserToGroup",
+        "iam:RemoveUserFromGroup",
+        "iam:ListGroupsForUser",
+        "iam:CreateAccessKey",
+        "iam:DeleteAccessKey",
+        "iam:ListAccessKeys"
+      ],
+      "Resource": "arn:aws:iam::*:user/devpod_otto"
+    },
+    {
+      "Sid": "VerifyIdentity",
+      "Effect": "Allow",
+      "Action": ["sts:GetCallerIdentity"],
+      "Resource": "*"
+    }
+  ]
+}
