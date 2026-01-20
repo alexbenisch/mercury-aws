@@ -99,7 +99,12 @@
         "eks:DescribeNodegroup",
         "eks:ListNodegroups",
         "eks:DescribeAddon",
-        "eks:ListAddons"
+        "eks:ListAddons",
+        "eks:DescribeAddonVersions",
+        "eks:DescribeAccessEntry",
+        "eks:ListAccessEntries",
+        "eks:ListAccessPolicies",
+        "eks:ListAssociatedAccessPolicies"
       ],
       "Resource": "*"
     },
@@ -159,6 +164,9 @@
         "ec2:DeleteFlowLogs",
         "ec2:DescribeFlowLogs",
         "ec2:DescribeVpcAttribute",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DeleteNetworkInterface",
+        "ec2:DescribeSecurityGroupRules",
         "ec2:DescribeNetworkAcls",
         "ec2:CreateNetworkAclEntry",
         "ec2:DeleteNetworkAclEntry",

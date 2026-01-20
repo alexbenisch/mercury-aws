@@ -93,19 +93,20 @@ cd iam && ./setup-iam.sh
 ## Bead 1: AWS Foundation Setup
 
 ### 1.1 Terraform Backend
-- [ ] Create S3 bucket `mercury-terraform-state`
-- [ ] Create DynamoDB table `terraform-locks`
-- [ ] Configure backend in `main.tf`
+- [x] Create S3 bucket `mercury-terraform-state-<account-id>`
+- [x] Create DynamoDB table `terraform-locks`
+- [x] Configure backend in `main.tf`
 
 **Test:** `terraform init` succeeds without errors
 
 ### 1.2 VPC Infrastructure
-- [ ] Create VPC with CIDR block
-- [ ] Create 3 public subnets (multi-AZ)
-- [ ] Create 3 private subnets (multi-AZ)
-- [ ] Create Internet Gateway
-- [ ] Create NAT Gateway
-- [ ] Configure route tables
+- [x] Create VPC with CIDR block (10.0.0.0/16)
+- [x] Create 3 public subnets (multi-AZ)
+- [x] Create 3 private subnets (multi-AZ)
+- [x] Create Internet Gateway
+- [x] Create NAT Gateway
+- [x] Configure route tables
+- [x] Enable VPC Flow Logs
 
 **Test:**
 ```bash
@@ -117,13 +118,26 @@ aws ec2 describe-subnets --filters "Name=vpc-id,Values=<vpc-id>"
 
 ## Bead 2: EKS Cluster Deployment
 
+### IAM Permissions Note
+The `MercuryDeploymentPolicy-Core` policy requires EKS Access Entry permissions for the terraform-aws-modules/eks module to work correctly. The following permissions must be included **without** resource tag conditions:
+
+```
+eks:DescribeAccessEntry
+eks:ListAccessEntries
+eks:ListAccessPolicies
+eks:ListAssociatedAccessPolicies
+eks:DisassociateAccessPolicy
+```
+
+These were added to the `EKSClusterManagement` statement during deployment. Without them, terraform apply will fail with `AccessDeniedException` on `eks:DescribeAccessEntry`.
+
 ### 2.1 EKS Cluster Core
-- [ ] Deploy EKS cluster with Terraform module
-- [ ] Configure cluster version 1.31
-- [ ] Enable OIDC provider
-- [ ] Install CoreDNS addon
-- [ ] Install kube-proxy addon
-- [ ] Install aws-ebs-csi-driver addon
+- [x] Deploy EKS cluster with Terraform module
+- [x] Configure cluster version 1.31
+- [x] Enable OIDC provider
+- [x] Install CoreDNS addon
+- [x] Install kube-proxy addon
+- [x] Install aws-ebs-csi-driver addon
 
 **Test:**
 ```bash
@@ -132,10 +146,16 @@ kubectl get nodes
 kubectl cluster-info
 ```
 
+**kubeconfig Note:** If the default `~/.kube/config` path is read-only, use a workspace path:
+```bash
+aws eks update-kubeconfig --name mercury-eks-staging --region eu-west-1 --kubeconfig /workspaces/mercury-aws/.kube/config
+export KUBECONFIG=/workspaces/mercury-aws/.kube/config
+```
+
 ### 2.2 Managed Node Group
-- [ ] Create node group with t3.medium instances
-- [ ] Configure min/max/desired capacity (2/4/2)
-- [ ] Verify nodes join cluster
+- [x] Create node group with t3.medium instances
+- [x] Configure min/max/desired capacity (2/4/2)
+- [x] Verify nodes join cluster
 
 **Test:**
 ```bash
@@ -143,14 +163,20 @@ kubectl get nodes -o wide
 kubectl describe nodes | grep -A5 "Allocatable"
 ```
 
-### 2.3 Cilium CNI
-- [ ] Install Cilium Helm chart
-- [ ] Configure ENI mode
-- [ ] Verify pod networking
+### 2.3 CNI Configuration
+Using **VPC CNI** (aws-node) instead of Cilium for simplicity and native AWS integration.
+
+- [x] VPC CNI enabled via EKS addon with prefix delegation
+- [x] Verify pod networking
+
+**Note:** Cilium is optional and commented out in `eks.tf`. To use Cilium instead:
+1. Remove `vpc-cni` from `cluster_addons` in `eks.tf`
+2. Uncomment the `helm_release.cilium` resource
+3. Run `terraform apply`
 
 **Test:**
 ```bash
-cilium status
+kubectl get pods -n kube-system -l k8s-app=aws-node
 kubectl run test-pod --image=nginx --restart=Never
 kubectl exec test-pod -- curl -s ifconfig.me
 kubectl delete pod test-pod
@@ -558,3 +584,26 @@ Each bead can be rolled back independently:
 - Keep Terraform state backed up
 - Document any deviations from plan
 - Each bead should be fully tested before proceeding to the next
+
+## Terraform Configuration
+
+Before running `terraform apply`, create `terraform/terraform.tfvars` from the example:
+
+```bash
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+# Edit terraform.tfvars with your values (especially db_password)
+```
+
+**Important:** `terraform.tfvars` is in `.gitignore` - never commit credentials.
+
+## Lessons Learned
+
+### Bead 2: EKS Access Entry Permissions
+The terraform-aws-modules/eks module (v20+) uses EKS Access Entries for cluster authentication. The IAM policy must include these permissions **without** restrictive tag conditions:
+- `eks:DescribeAccessEntry`
+- `eks:ListAccessEntries`
+- `eks:ListAccessPolicies`
+- `eks:ListAssociatedAccessPolicies`
+- `eks:DisassociateAccessPolicy`
+
+The `MercuryDeploymentPolicy-Core` was updated to v2 to include these permissions.
