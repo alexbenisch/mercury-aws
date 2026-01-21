@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bd create:*)",
+      "Bash(aws iam create-policy-version:*)",
+      "Bash(aws iam list-policy-versions:*)"
+    ]
+  }
+}
