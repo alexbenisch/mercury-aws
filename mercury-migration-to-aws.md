@@ -1,5 +1,3 @@
-Ich schaue mir dein Mercury-GitOps Repo an und erstelle dir eine AWS-Roadmap basierend auf deiner Azure-Implementierung.Perfekt! Ich habe dein Mercury-GitOps Repo analysiert. Das ist ein solides Setup mit Terraform + Flux + AKS. Jetzt erstelle ich dir eine strukturierte Roadmap für AWS (EKS).
-
 ## AWS EKS Migration Roadmap - Mercury-GitOps
 
 ### Phase 1: AWS Foundation & Baseline Infrastructure (1-2 Wochen)
