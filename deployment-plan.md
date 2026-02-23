@@ -154,11 +154,69 @@ cd iam && ./setup-iam.sh
 ## Bead 1: AWS Foundation Setup
 
 ### 1.1 Terraform Backend
-- [x] Create S3 bucket `mercury-terraform-state-<account-id>`
-- [x] Create DynamoDB table `terraform-locks`
-- [x] Configure backend in `main.tf`
+- [ ] Create S3 bucket `mercury-terraform-state-<account-id>`
+- [ ] Enable versioning on S3 bucket
+- [ ] Create DynamoDB table `terraform-locks`
+- [ ] Configure backend in `terraform/backend.tf`
 
-**Test:** `terraform init` succeeds without errors
+**Commands:**
+```bash
+# Get your AWS account ID
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+REGION="eu-west-1"  # Change to your preferred region
+
+# Create S3 bucket for Terraform state
+aws s3api create-bucket \
+  --bucket "mercury-terraform-state-${ACCOUNT_ID}" \
+  --region ${REGION} \
+  --create-bucket-configuration LocationConstraint=${REGION}
+
+# Enable versioning on the bucket
+aws s3api put-bucket-versioning \
+  --bucket "mercury-terraform-state-${ACCOUNT_ID}" \
+  --versioning-configuration Status=Enabled
+
+# Enable encryption
+aws s3api put-bucket-encryption \
+  --bucket "mercury-terraform-state-${ACCOUNT_ID}" \
+  --server-side-encryption-configuration '{
+    "Rules": [{
+      "ApplyServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+      }
+    }]
+  }'
+
+# Block public access
+aws s3api put-public-access-block \
+  --bucket "mercury-terraform-state-${ACCOUNT_ID}" \
+  --public-access-block-configuration \
+    BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+
+# Create DynamoDB table for state locking
+aws dynamodb create-table \
+  --table-name terraform-locks \
+  --attribute-definitions AttributeName=LockID,AttributeType=S \
+  --key-schema AttributeName=LockID,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST \
+  --region ${REGION}
+```
+
+**Test:**
+```bash
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+REGION="eu-west-1"
+
+# Verify S3 bucket
+aws s3api head-bucket --bucket "mercury-terraform-state-${ACCOUNT_ID}"
+aws s3api get-bucket-versioning --bucket "mercury-terraform-state-${ACCOUNT_ID}"
+
+# Verify DynamoDB table
+aws dynamodb describe-table --table-name terraform-locks --region ${REGION}
+
+# Test terraform init (after configuring backend)
+terraform init
+```
 
 ### 1.2 VPC Infrastructure
 - [x] Create VPC with CIDR block (10.0.0.0/16)
