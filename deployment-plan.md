@@ -218,19 +218,77 @@ aws dynamodb describe-table --table-name terraform-locks --region ${REGION}
 terraform init
 ```
 
-### 1.2 VPC Infrastructure
-- [x] Create VPC with CIDR block (10.0.0.0/16)
-- [x] Create 3 public subnets (multi-AZ)
-- [x] Create 3 private subnets (multi-AZ)
-- [x] Create Internet Gateway
-- [x] Create NAT Gateway
-- [x] Configure route tables
-- [x] Enable VPC Flow Logs
+### 1.2 Configure Terraform Backend
+
+After creating the S3 bucket and DynamoDB table, configure your Terraform backend:
+
+**Create/Update `terraform/backend.tf`:**
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "mercury-terraform-state-<YOUR_ACCOUNT_ID>"
+    key            = "terraform.tfstate"
+    region         = "eu-west-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
+}
+```
+
+**Or use a variables approach in your backend configuration:**
+```bash
+# Initialize with backend config
+terraform init \
+  -backend-config="bucket=mercury-terraform-state-$(aws sts get-caller-identity --query Account --output text)" \
+  -backend-config="key=terraform.tfstate" \
+  -backend-config="region=eu-west-1" \
+  -backend-config="dynamodb_table=terraform-locks" \
+  -backend-config="encrypt=true"
+```
 
 **Test:**
 ```bash
-aws ec2 describe-vpcs --filters "Name=tag:Name,Values=mercury-*"
-aws ec2 describe-subnets --filters "Name=vpc-id,Values=<vpc-id>"
+# Verify terraform can initialize with the backend
+terraform init
+
+# Should see: "Successfully configured the backend "s3"!"
+```
+
+---
+
+### 1.3 VPC Infrastructure
+- [ ] Deploy VPC with CIDR block (10.0.0.0/16)
+- [ ] Create 3 public subnets (multi-AZ)
+- [ ] Create 3 private subnets (multi-AZ)
+- [ ] Create Internet Gateway
+- [ ] Create NAT Gateway
+- [ ] Configure route tables
+- [ ] Enable VPC Flow Logs
+
+**Deploy via Terraform:**
+```bash
+cd terraform
+
+# Review the plan
+terraform plan
+
+# Apply VPC infrastructure
+terraform apply -target=module.vpc
+```
+
+**Test:**
+```bash
+# Get VPC ID
+VPC_ID=$(terraform output -raw vpc_id)
+
+# Verify VPC exists
+aws ec2 describe-vpcs --vpc-ids ${VPC_ID}
+
+# Verify subnets
+aws ec2 describe-subnets --filters "Name=vpc-id,Values=${VPC_ID}"
+
+# Verify NAT gateway
+aws ec2 describe-nat-gateways --filter "Name=vpc-id,Values=${VPC_ID}"
 ```
 
 ---
