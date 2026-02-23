@@ -11,7 +11,7 @@ Migration from Azure (AKS) to AWS (EKS) broken into testable beads.
 A local AWS CLI user with permissions to create IAM resources. Attach `iam/bootstrap-admin-policy.json` to your local CLI user before starting.
 
 **Required permissions for local admin user:**
-- `iam:CreatePolicy` / `iam:GetPolicy` / `iam:DeletePolicy` (on `policy/MercuryDeploymentPolicy`)
+- `iam:CreatePolicy` / `iam:GetPolicy` / `iam:DeletePolicy` (on `policy/MercuryDeploymentPolicy-*`)
 - `iam:CreateGroup` / `iam:GetGroup` / `iam:DeleteGroup` (on `group/MercuryDeployers`)
 - `iam:AttachGroupPolicy` / `iam:DetachGroupPolicy` (on `group/MercuryDeployers`)
 - `iam:CreateUser` / `iam:GetUser` / `iam:DeleteUser` (on `user/devpod_otto`)
@@ -31,22 +31,81 @@ aws sts get-caller-identity
 aws iam get-user --user-name $(aws sts get-caller-identity --query Arn --output text | cut -d'/' -f2)
 ```
 
-### 0.2 Create Deployment Policy
-- [ ] Create IAM policy `MercuryDeploymentPolicy` from `iam/mercury-deployment-policy.json`
+### 0.2 Create Deployment Policies
+
+AWS IAM policies have a 6,144 character limit. The deployment permissions are split into 4 policies:
+
+- [ ] Create IAM policy `MercuryDeploymentPolicy-Core` (S3, DynamoDB, EKS)
+- [ ] Create IAM policy `MercuryDeploymentPolicy-Network` (VPC, EC2, ELB, Auto Scaling)
+- [ ] Create IAM policy `MercuryDeploymentPolicy-IAM` (IAM roles, OIDC providers)
+- [ ] Create IAM policy `MercuryDeploymentPolicy-Ops` (Secrets Manager, Route53, CloudWatch, KMS, ACM)
+
+**Commands:**
+```bash
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+# Create all 4 policies
+aws iam create-policy \
+  --policy-name MercuryDeploymentPolicy-Core \
+  --policy-document file://iam/mercury-deployment-policy-core.json
+
+aws iam create-policy \
+  --policy-name MercuryDeploymentPolicy-Network \
+  --policy-document file://iam/mercury-deployment-policy-network.json
+
+aws iam create-policy \
+  --policy-name MercuryDeploymentPolicy-IAM \
+  --policy-document file://iam/mercury-deployment-policy-iam.json
+
+aws iam create-policy \
+  --policy-name MercuryDeploymentPolicy-Ops \
+  --policy-document file://iam/mercury-deployment-policy-ops.json
+```
 
 **Test:**
 ```bash
-aws iam get-policy --policy-arn arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):policy/MercuryDeploymentPolicy
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+aws iam get-policy --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/MercuryDeploymentPolicy-Core
+aws iam get-policy --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/MercuryDeploymentPolicy-Network
+aws iam get-policy --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/MercuryDeploymentPolicy-IAM
+aws iam get-policy --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/MercuryDeploymentPolicy-Ops
 ```
 
 ### 0.3 Create Deployers Group
 - [ ] Create IAM group `MercuryDeployers`
-- [ ] Attach `MercuryDeploymentPolicy` to the group
+- [ ] Attach all 4 deployment policies to the group
+
+**Commands:**
+```bash
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+# Create group
+aws iam create-group --group-name MercuryDeployers
+
+# Attach all 4 policies
+aws iam attach-group-policy \
+  --group-name MercuryDeployers \
+  --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/MercuryDeploymentPolicy-Core
+
+aws iam attach-group-policy \
+  --group-name MercuryDeployers \
+  --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/MercuryDeploymentPolicy-Network
+
+aws iam attach-group-policy \
+  --group-name MercuryDeployers \
+  --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/MercuryDeploymentPolicy-IAM
+
+aws iam attach-group-policy \
+  --group-name MercuryDeployers \
+  --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/MercuryDeploymentPolicy-Ops
+```
 
 **Test:**
 ```bash
 aws iam get-group --group-name MercuryDeployers
 aws iam list-attached-group-policies --group-name MercuryDeployers
+# Should show 4 attached policies
 ```
 
 ### 0.4 Create Devcontainer User
@@ -83,6 +142,8 @@ git clone git@github.com:<org>/<repo>.git /tmp/test-clone && rm -rf /tmp/test-cl
 
 ### Automated Setup Script
 Run `iam/setup-iam.sh` to automate steps 0.2-0.4 (requires bootstrap policy attached first).
+
+**Note:** The script creates 4 separate policies due to AWS IAM's 6,144 character limit per policy.
 
 ```bash
 cd iam && ./setup-iam.sh
@@ -598,6 +659,17 @@ cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 
 ## Lessons Learned
 
+### Bead 0: IAM Policy Size Limits
+AWS IAM policies have a maximum size of 6,144 non-whitespace characters. The original deployment policy exceeded this limit at ~8,149 characters.
+
+**Solution:** Split the policy into 4 separate policies:
+- `MercuryDeploymentPolicy-Core` (1,846 chars) - S3, DynamoDB, EKS
+- `MercuryDeploymentPolicy-Network` (3,192 chars) - EC2, VPC, ELB, Auto Scaling
+- `MercuryDeploymentPolicy-IAM` (1,053 chars) - IAM roles, OIDC providers
+- `MercuryDeploymentPolicy-Ops` (1,817 chars) - Secrets Manager, Route53, CloudWatch, KMS, ACM
+
+All 4 policies are attached to the `MercuryDeployers` group.
+
 ### Bead 2: EKS Access Entry Permissions
 The terraform-aws-modules/eks module (v20+) uses EKS Access Entries for cluster authentication. The IAM policy must include these permissions **without** restrictive tag conditions:
 - `eks:DescribeAccessEntry`
@@ -606,4 +678,4 @@ The terraform-aws-modules/eks module (v20+) uses EKS Access Entries for cluster 
 - `eks:ListAssociatedAccessPolicies`
 - `eks:DisassociateAccessPolicy`
 
-The `MercuryDeploymentPolicy-Core` was updated to v2 to include these permissions.
+The `MercuryDeploymentPolicy-Core` includes these permissions.

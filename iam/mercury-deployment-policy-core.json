@@ -26,7 +26,10 @@
         "s3:GetEncryptionConfiguration",
         "s3:PutEncryptionConfiguration"
       ],
-      "Resource": ["arn:aws:s3:::mercury-*", "arn:aws:s3:::mercury-*/*"]
+      "Resource": [
+        "arn:aws:s3:::mercury-*",
+        "arn:aws:s3:::mercury-*/*"
+      ]
     },
     {
       "Sid": "DynamoDBTerraformLocks",
@@ -39,6 +42,7 @@
         "dynamodb:PutItem",
         "dynamodb:DeleteItem",
         "dynamodb:TagResource",
+        "dynamodb:UntagResource",
         "dynamodb:ListTagsOfResource"
       ],
       "Resource": "arn:aws:dynamodb:*:*:table/terraform-locks"
@@ -54,10 +58,12 @@
         "eks:UpdateClusterVersion",
         "eks:ListClusters",
         "eks:TagResource",
+        "eks:UntagResource",
         "eks:CreateNodegroup",
         "eks:DeleteNodegroup",
         "eks:DescribeNodegroup",
         "eks:UpdateNodegroupConfig",
+        "eks:UpdateNodegroupVersion",
         "eks:ListNodegroups",
         "eks:CreateAddon",
         "eks:DeleteAddon",
@@ -66,10 +72,17 @@
         "eks:ListAddons",
         "eks:DescribeAddonVersions",
         "eks:AssociateIdentityProviderConfig",
+        "eks:DisassociateIdentityProviderConfig",
         "eks:DescribeIdentityProviderConfig",
+        "eks:ListIdentityProviderConfigs",
         "eks:CreateAccessEntry",
         "eks:DeleteAccessEntry",
-        "eks:AssociateAccessPolicy"
+        "eks:DescribeAccessEntry",
+        "eks:ListAccessEntries",
+        "eks:AssociateAccessPolicy",
+        "eks:DisassociateAccessPolicy",
+        "eks:ListAccessPolicies",
+        "eks:ListAssociatedAccessPolicies"
       ],
       "Resource": "*"
     }

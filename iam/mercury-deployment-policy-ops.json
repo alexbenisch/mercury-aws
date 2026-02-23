@@ -2,14 +2,25 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "SecretsManagerAccess",
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:CreateSecret","secretsmanager:DeleteSecret",
+        "secretsmanager:DescribeSecret","secretsmanager:GetSecretValue",
+        "secretsmanager:PutSecretValue","secretsmanager:UpdateSecret",
+        "secretsmanager:TagResource","secretsmanager:UntagResource",
+        "secretsmanager:ListSecrets","secretsmanager:GetResourcePolicy",
+        "secretsmanager:PutResourcePolicy","secretsmanager:DeleteResourcePolicy"
+      ],
+      "Resource": "*"
+    },
+    {
       "Sid": "Route53DNSManagement",
       "Effect": "Allow",
       "Action": [
-        "route53:GetHostedZone",
-        "route53:ListHostedZones",
-        "route53:ListResourceRecordSets",
-        "route53:ChangeResourceRecordSets",
-        "route53:GetChange"
+        "route53:GetHostedZone","route53:ListHostedZones",
+        "route53:ListResourceRecordSets","route53:ChangeResourceRecordSets",
+        "route53:GetChange","route53:ListTagsForResource"
       ],
       "Resource": "*"
     },
@@ -17,79 +28,28 @@
       "Sid": "CloudWatchMonitoring",
       "Effect": "Allow",
       "Action": [
-        "cloudwatch:PutMetricData",
-        "cloudwatch:GetMetricData",
-        "cloudwatch:ListMetrics",
-        "cloudwatch:DescribeAlarms",
-        "cloudwatch:PutMetricAlarm",
-        "cloudwatch:DeleteAlarms",
-        "logs:CreateLogGroup",
-        "logs:DeleteLogGroup",
-        "logs:DescribeLogGroups",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "logs:PutRetentionPolicy",
-        "logs:TagResource",
-        "logs:ListTagsForResource",
-        "logs:UntagResource",
-        "logs:ListTagsLogGroup"
+        "cloudwatch:PutMetricData","cloudwatch:GetMetricData","cloudwatch:ListMetrics",
+        "cloudwatch:DescribeAlarms","cloudwatch:PutMetricAlarm","cloudwatch:DeleteAlarms",
+        "logs:CreateLogGroup","logs:DeleteLogGroup","logs:DescribeLogGroups",
+        "logs:CreateLogStream","logs:DeleteLogStream","logs:DescribeLogStreams",
+        "logs:PutLogEvents","logs:GetLogEvents","logs:PutRetentionPolicy","logs:TagResource"
       ],
       "Resource": "*"
     },
     {
-      "Sid": "ElasticLoadBalancing",
+      "Sid": "STSAssumeRole",
       "Effect": "Allow",
-      "Action": [
-        "elasticloadbalancing:CreateLoadBalancer",
-        "elasticloadbalancing:DeleteLoadBalancer",
-        "elasticloadbalancing:DescribeLoadBalancers",
-        "elasticloadbalancing:ModifyLoadBalancerAttributes",
-        "elasticloadbalancing:DescribeLoadBalancerAttributes",
-        "elasticloadbalancing:CreateTargetGroup",
-        "elasticloadbalancing:DeleteTargetGroup",
-        "elasticloadbalancing:DescribeTargetGroups",
-        "elasticloadbalancing:ModifyTargetGroup",
-        "elasticloadbalancing:RegisterTargets",
-        "elasticloadbalancing:DeregisterTargets",
-        "elasticloadbalancing:DescribeTargetHealth",
-        "elasticloadbalancing:CreateListener",
-        "elasticloadbalancing:DeleteListener",
-        "elasticloadbalancing:DescribeListeners",
-        "elasticloadbalancing:AddTags",
-        "elasticloadbalancing:DescribeTags",
-        "elasticloadbalancing:SetSecurityGroups",
-        "elasticloadbalancing:SetSubnets"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "AutoScaling",
-      "Effect": "Allow",
-      "Action": [
-        "autoscaling:CreateAutoScalingGroup",
-        "autoscaling:DeleteAutoScalingGroup",
-        "autoscaling:DescribeAutoScalingGroups",
-        "autoscaling:UpdateAutoScalingGroup",
-        "autoscaling:CreateOrUpdateTags",
-        "autoscaling:DeleteTags",
-        "autoscaling:DescribeTags"
-      ],
+      "Action": ["sts:GetCallerIdentity","sts:AssumeRole"],
       "Resource": "*"
     },
     {
       "Sid": "KMSForEncryption",
       "Effect": "Allow",
       "Action": [
-        "kms:CreateKey",
-        "kms:DescribeKey",
-        "kms:ListKeys",
-        "kms:CreateAlias",
-        "kms:DeleteAlias",
-        "kms:ListAliases",
-        "kms:Encrypt",
-        "kms:Decrypt",
-        "kms:GenerateDataKey",
-        "kms:TagResource"
+        "kms:CreateKey","kms:DescribeKey","kms:ListKeys",
+        "kms:CreateAlias","kms:DeleteAlias","kms:ListAliases",
+        "kms:Encrypt","kms:Decrypt","kms:GenerateDataKey",
+        "kms:TagResource","kms:UntagResource","kms:ScheduleKeyDeletion"
       ],
       "Resource": "*"
     },
@@ -97,11 +57,9 @@
       "Sid": "ACMCertificates",
       "Effect": "Allow",
       "Action": [
-        "acm:RequestCertificate",
-        "acm:DeleteCertificate",
-        "acm:DescribeCertificate",
-        "acm:ListCertificates",
-        "acm:AddTagsToCertificate"
+        "acm:RequestCertificate","acm:DeleteCertificate",
+        "acm:DescribeCertificate","acm:ListCertificates",
+        "acm:AddTagsToCertificate","acm:ListTagsForCertificate"
       ],
       "Resource": "*"
     }
