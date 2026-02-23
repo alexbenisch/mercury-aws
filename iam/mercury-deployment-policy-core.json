@@ -26,7 +26,20 @@
         "s3:GetEncryptionConfiguration",
         "s3:PutEncryptionConfiguration",
         "s3:GetBucketAcl",
-        "s3:PutBucketAcl"
+        "s3:PutBucketAcl",
+        "s3:GetBucketCORS",
+        "s3:PutBucketCORS",
+        "s3:GetBucketWebsite",
+        "s3:GetBucketLogging",
+        "s3:GetBucketNotification",
+        "s3:GetBucketOwnershipControls",
+        "s3:GetBucketRequestPayment",
+        "s3:GetReplicationConfiguration",
+        "s3:GetObjectLockConfiguration",
+        "s3:GetBucketObjectLockConfiguration",
+        "s3:PutBucketObjectLockConfiguration",
+        "s3:GetAccelerateConfiguration",
+        "s3:PutAccelerateConfiguration"
       ],
       "Resource": [
         "arn:aws:s3:::mercury-*",
@@ -45,7 +58,11 @@
         "dynamodb:DeleteItem",
         "dynamodb:TagResource",
         "dynamodb:UntagResource",
-        "dynamodb:ListTagsOfResource"
+        "dynamodb:ListTagsOfResource",
+        "dynamodb:DescribeContinuousBackups",
+        "dynamodb:UpdateContinuousBackups",
+        "dynamodb:DescribeTimeToLive",
+        "dynamodb:UpdateTimeToLive"
       ],
       "Resource": "arn:aws:dynamodb:*:*:table/terraform-locks"
     },

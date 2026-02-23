@@ -35,3 +35,4 @@ kubeconfig
 
 # Flux (auto-generated)
 clusters/*/flux-system/gotk-components.yaml
+terraform/tfplan
