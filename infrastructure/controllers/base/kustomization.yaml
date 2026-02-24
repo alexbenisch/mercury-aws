@@ -15,3 +15,14 @@ resources:
   - cloudnative-pg/
   # Bead 12: AWS CloudWatch Monitoring
   - aws-cloudwatch/
+
+# Each component kustomization sets a namespace: <component> override which
+# inadvertently moves HelmRepository resources out of flux-system. Patch them
+# back so HelmRelease sourceRef lookups succeed.
+patches:
+  - target:
+      kind: HelmRepository
+    patch: |
+      - op: replace
+        path: /metadata/namespace
+        value: flux-system
