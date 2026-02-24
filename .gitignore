@@ -33,6 +33,6 @@ Thumbs.db
 kubeconfig
 *.kubeconfig
 
-# Flux (auto-generated)
-clusters/*/flux-system/gotk-components.yaml
+# Flux (auto-generated - committed intentionally for GitOps)
+# clusters/*/flux-system/gotk-components.yaml
 terraform/tfplan
