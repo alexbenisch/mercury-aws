@@ -10,14 +10,12 @@
   },
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/home/devpod_otto/.ssh-host,readonly,type=bind",
-    "source=${localEnv:HOME}/.kube,target=/home/devpod_otto/.kube,readonly,type=bind",
     "source=${localEnv:HOME}/.aws,target=/home/devpod_otto/.aws,readonly,type=bind",
-    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
-    "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
   "containerEnv": {
-    "SSH_AUTH_SOCK": "/ssh-agent",
-    "AWS_PROFILE": "devpod_otto"
+    "AWS_PROFILE": "devpod_otto",
+    "KUBECONFIG": "/workspaces/mercury-aws/.kube/config"
   },
   "remoteUser": "devpod_otto",
   "customizations": {
@@ -26,7 +24,7 @@
     }
   },
   "postCreateCommand": "mkdir -p ~/.ssh ~/.cache/tmp && cp -r ~/.ssh-host/* ~/.ssh/ 2>/dev/null; chmod 700 ~/.ssh && chmod 600 ~/.ssh/* 2>/dev/null; printf 'Host github.com\\nStrictHostKeyChecking no\\nUserKnownHostsFile=/dev/null\\nIdentityFile ~/.ssh/aws\\n' > ~/.ssh/config; curl -fsSL https://mise.run | sh; export PATH=\"$HOME/.local/bin:$PATH\" TMPDIR=\"$HOME/.cache/tmp\"; (curl -fsSL https://raw.githubusercontent.com/alexbenisch/dotfiles/main/setup-devcontainer | sh || true); (TMPDIR=\"$HOME/.cache/tmp\" chezmoi init --apply --source ~/.local/share/dotfiles alexbenisch/dotfiles || true); (~/.local/bin/mise trust /workspaces 2>/dev/null || true); (~/.local/bin/mise trust ~ 2>/dev/null || true)",
-  "postStartCommand": "mkdir -p ~/.cache/tmp; TMPDIR=~/.cache/tmp chezmoi apply --source ~/.local/share/dotfiles 2>/dev/null || true",
+  "postStartCommand": "mkdir -p ~/.cache/tmp; TMPDIR=~/.cache/tmp chezmoi apply --source ~/.local/share/dotfiles 2>/dev/null || true; mkdir -p /workspaces/mercury-aws/.kube && aws eks update-kubeconfig --name mercury-eks-staging --region eu-west-1 --kubeconfig /workspaces/mercury-aws/.kube/config 2>/dev/null || true",
   "runArgs": [
     "--network=host"
   ]
